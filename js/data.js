@@ -240,3 +240,18 @@ const fullData = [
     },
   },
 ];
+
+const getCountries = () => {
+  let arrayCountries = [];
+  for (let i = 0; i < fullData.length; i++) {
+    arrayCountries.push(fullData[i].competition.area.name);
+  }
+  return (arrayCountries = [...new Set(arrayCountries)]);
+};
+
+const getTeamByCountry = (country) => {
+  let arrayTeams = [];
+  const teams = fullData.filter((obj) => obj.competition.area.name === country);
+  arrayTeams = teams.map((obj) => obj.team.name); //Don't allow duplicated teams
+  return (arrayTeams = [...new Set(arrayTeams)]);
+};
