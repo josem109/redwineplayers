@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Crear Post</title>
+  </head>
+  <body>
+    <h1>Crear un nuevo post</h1>
+    <form id="newPostForm">
+      <label for="title">Título:</label>
+      <input type="text" id="title" name="title" />
+      <br />
+      <label for="body">Contenido:</label>
+      <textarea id="body" name="body" rows="4"></textarea>
+      <br />
+      <button type="button" id="saveButton">Guardar</button>
+    </form>
+
+    <script>
+      // Capturamos el formulario y el botón
+      const newPostForm = document.getElementById("newPostForm");
+      const saveButton = document.getElementById("saveButton");
+
+      // Agregamos el evento click al botón
+      saveButton.addEventListener("click", () => {
+        // Obtenemos los valores del formulario
+        const title = newPostForm.elements.title.value;
+        const body = newPostForm.elements.body.value;
+
+        // Creamos un objeto con los datos del post
+        const postData = {
+          title: title,
+          body: body,
+        };
+
+        // Enviamos los datos al servicio new_post mediante una petición POST
+        fetch("/new_post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(postData),
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Si la petición fue exitosa, redirigimos a la página principal
+              window.location.href = "/";
+            } else {
+              console.error("Error al guardar el post");
+            }
+          })
+          .catch((error) => {
+            console.error("Error al guardar el post:", error);
+          });
+      });
+    </script>
+    <a href="/">Volver</a>
+  </body>
+</html>
