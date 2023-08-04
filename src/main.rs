@@ -14,10 +14,11 @@ use diesel::r2d2::{self, ConnectionManager};
 pub mod models;
 pub mod schema;
 //use crate::schema;
-
-use self::models::{Jugador, NewJugador, NewJugadorHandler, NewPost, NewPostHandler, Post};
+//use self::models::{Jugador, NewJugador, NewJugadorHandler, NewPost, NewPostHandler, Post};
+use self::models::{NewPost, NewPostHandler, Post};
 use self::schema::{jugadores, posts};
 use self::schema::{jugadores::dsl::*, posts::dsl::*};
+use models::jugadores::{Jugador, NewJugador, NewJugadorHandler};
 
 pub type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
