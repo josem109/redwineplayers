@@ -7,6 +7,9 @@ use diesel::Insertable;
 use diesel::PgConnection;
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
+pub mod jugadores;
+// Reexportar las estructuras para que sean accesibles desde otros módulos
+pub use jugadores::Jugador;
 // Importamos los tipos de datos necesarios para definir el modelo
 //use diesel::sql_types::*;
 // Macro para indicar que los registros de la BBDD tendrán la misma forma que la estructura.
@@ -19,30 +22,11 @@ pub struct Post {
     pub slug: String,
 }
 
-// Definimos la estructura para el modelo "Jugador"
-#[derive(Debug, Queryable)]
-pub struct Jugador {
-    pub id: i32,
-    pub nombre: String,
-    pub fecha_nacimiento: Option<NaiveDate>, // Utilizamos Option para campos nullable
-    pub id_posicion: Option<i32>,
-    pub id_club: Option<i32>,
-    pub url: Option<String>,
-    pub foto: Option<String>,
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug, Insertable)]
 #[diesel(table_name = posts)]
 pub struct NewPostHandler {
     pub title: String,
     pub body: String,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug, Insertable)]
-#[diesel(table_name = jugadores)]
-pub struct NewJugadorHandler {
-    pub nombre: String,
-    pub fecha_nacimiento: Option<NaiveDate>,
 }
 
 #[derive(Queryable, Debug, Deserialize, Serialize)]
@@ -53,7 +37,6 @@ pub struct PostSimplificado {
 }
 
 // Importamos el esquema de la BBDD
-use super::schema::jugadores;
 use super::schema::posts;
 use diesel::prelude::*;
 
@@ -87,30 +70,5 @@ impl Post {
         diesel::insert_into(posts::table)
             .values(new_post)
             .get_result::<Post>(conn)
-    }
-}
-
-// Macro para indicar que la estructura servirá que insert en la BBDD
-#[derive(Insertable)]
-//#[table_name = "posts"]
-#[diesel(table_name = jugadores)]
-pub struct NewJugador<'a> {
-    pub nombre: &'a str,
-    pub fecha_nacimiento: &'a NaiveDate,
-}
-
-impl Jugador {
-    pub fn create_jugador<'a>(
-        conn: &mut PgConnection,
-        jugador: &NewJugadorHandler,
-    ) -> Result<Jugador, diesel::result::Error> {
-        let new_jugador = NewJugador {
-            nombre: &jugador.nombre,
-            fecha_nacimiento: &jugador.fecha_nacimiento.unwrap_or_default(),
-        };
-
-        diesel::insert_into(jugadores::table)
-            .values(new_jugador)
-            .get_result::<Jugador>(conn)
     }
 }
