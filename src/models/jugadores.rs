@@ -1,16 +1,13 @@
 use crate::schema::jugadores;
 use chrono::NaiveDate;
-use std::error::Error;
-use validator::Validate;
-/* use diesel::dsl::sql;
-use diesel::expression::AsExpression;
-use diesel::pg::Pg; */
 use diesel::sql_types::{Date, Nullable};
 use diesel::Insertable;
 use diesel::PgConnection;
 use diesel::Queryable;
-use serde::{Deserialize, Serialize}; // Usa `crate` para referirte al mismo nivel del proyecto
-                                     // Definimos la estructura para el modelo "Jugador"
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use validator::Validate; // Usa `crate` para referirte al mismo nivel del proyecto
+                         // Definimos la estructura para el modelo "Jugador"
 
 #[derive(Debug, Queryable)]
 pub struct Jugador {

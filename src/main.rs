@@ -1,27 +1,36 @@
 extern crate diesel;
-use actix_web::web::post;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use dotenvy::dotenv;
-use std::env;
-use tera::Tera;
-
+use crate::error::BlockingError;
+use actix_web::error;
+use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder, Result};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-
 use diesel::r2d2::Pool;
 use diesel::r2d2::{self, ConnectionManager};
+use dotenvy::dotenv;
+use serde::Serialize;
+/* use futures::future::{ok, Ready};
+use futures::Future; */
+use std::env;
+use tera::Tera;
 
 pub mod models;
 pub mod schema;
 //use crate::schema;
 //use self::models::{Jugador, NewJugador, NewJugadorHandler, NewPost, NewPostHandler, Post};
 use self::models::{NewPost, NewPostHandler, Post};
-use self::schema::{jugadores, posts};
-use self::schema::{jugadores::dsl::*, posts::dsl::*};
+use self::schema::{jugadores, ligas, posts};
+use self::schema::{jugadores::dsl::*, ligas::dsl::*, posts::dsl::*};
 use models::jugadores::{Jugador, NewJugador, NewJugadorHandler};
+use models::ligas::{Liga, NewLiga, NewLigaHandler};
 
 pub type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+// Enum para definir tipos de errores relacionados con la API
 
+// Enum para definir errores relacionados con la carga JSON de la solicitud
+enum JsonPayloadError {
+    Deserialize,
+    // Agrega más variantes de error según tus necesidades
+}
 #[get("/")]
 async fn index(pool: web::Data<DbPool>, template_manager: web::Data<tera::Tera>) -> impl Responder {
     let mut conn = pool.get().expect("Problemas al traer la base de datos");
@@ -92,6 +101,11 @@ async fn new_post(pool: web::Data<DbPool>, item: web::Json<NewPostHandler>) -> i
     }
 }
 
+#[derive(Serialize)]
+struct MyObj {
+    message: String,
+}
+
 #[post("/new_jugador")]
 async fn new_jugador(
     pool: web::Data<DbPool>,
@@ -104,6 +118,28 @@ async fn new_jugador(
     match web::block(move || Jugador::create_jugador(&mut conn, &item)).await {
         Ok(data) => {
             return HttpResponse::Ok().body(format!("{:?}", data));
+        }
+        Err(err) => HttpResponse::Ok().body("Error al recibir la data"),
+    }
+}
+
+#[derive(Serialize)]
+struct MyObj2 {
+    message: String,
+}
+
+#[post("/new_liga")]
+async fn new_liga(pool: web::Data<DbPool>, item: web::Json<NewLigaHandler>) -> impl Responder {
+    // Traemos el POOL para disponer de la conexión a la BBDD
+    let mut conn = pool.get().expect("Problemas al traer la base de datos");
+    let response = MyObj2 {
+        message: String::from("Nueva Liga creada exitosamente"),
+    };
+    // Utiliamos la función creada en el modelo para crear un nuevo registro y devolverlo
+    match web::block(move || Liga::create_liga(&mut conn, &item)).await {
+        Ok(data) => {
+            //return HttpResponse::Ok().body(format!("{:?}", data));
+            return HttpResponse::Ok().json(response);
         }
         Err(err) => HttpResponse::Ok().body("Error al recibir la data"),
     }
@@ -147,12 +183,14 @@ async fn main() -> std::io::Result<()> {
         let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
 
         App::new()
+            //.wrap_fn(middleware)
             .service(index)
             .service(new_post)
             .service(tera_test)
             .service(get_post)
             .service(crear_post)
             .service(new_jugador)
+            .service(new_liga)
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.clone()))
     })
