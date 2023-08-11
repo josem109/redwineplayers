@@ -8,8 +8,10 @@ use diesel::PgConnection;
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 pub mod jugadores;
+pub mod ligas;
 // Reexportar las estructuras para que sean accesibles desde otros módulos
 pub use jugadores::Jugador;
+pub use ligas::Liga;
 // Importamos los tipos de datos necesarios para definir el modelo
 //use diesel::sql_types::*;
 // Macro para indicar que los registros de la BBDD tendrán la misma forma que la estructura.
@@ -18,7 +20,7 @@ pub struct Post {
     pub id: i32,
     pub title: String,
     pub body: String,
-    //pub published: bool,
+    pub published: bool,
     pub slug: String,
 }
 
